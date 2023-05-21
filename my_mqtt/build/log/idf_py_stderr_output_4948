@@ -1,0 +1,10 @@
+CMake Error at C:/Users/asogw/Desktop/esp32/esp32idf/frameworks/esp-idf-v5.0.2/tools/cmake/build.cmake:245 (message):
+  Failed to resolve component 'esp32'.
+Call Stack (most recent call first):
+  C:/Users/asogw/Desktop/esp32/esp32idf/frameworks/esp-idf-v5.0.2/tools/cmake/build.cmake:281 (__build_resolve_and_add_req)
+  C:/Users/asogw/Desktop/esp32/esp32idf/frameworks/esp-idf-v5.0.2/tools/cmake/build.cmake:574 (__build_expand_requirements)
+  C:/Users/asogw/Desktop/esp32/esp32idf/frameworks/esp-idf-v5.0.2/tools/cmake/project.cmake:447 (idf_build_process)
+  CMakeLists.txt:6 (project)
+
+
+ninja: error: rebuilding 'build.ninja': subcommand failed
