@@ -58,7 +58,7 @@
  */
 
 //my defines 
-#define AWS_IOT_ENDPOINT "a1fsxpnauvo8gs-ats.iot.eu-north-1.amazonaws.com"
+#define AWS_IOT_ENDPOINT "a3phwa1n4zfmly-ats.iot.eu-west-1.amazonaws.com"
 //#define AWS_MQTT_PORT 8883
 #define CLIENT_IDENTIFIER "home"
 #define CLIENT_CERT_PATH   "./certs"

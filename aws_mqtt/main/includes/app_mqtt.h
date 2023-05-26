@@ -25,10 +25,19 @@
 /* Clock for timer. */
 #include "clock.h"
 
+#include "common.h"
 
-#define TEMP_TOPIC  "home/sensor/temp"
-#define HUMD_TOPIC  "home/sensor/humd"
-#define LIGHT_TOPIC "home/sensor/light"
+
+#define PAYLOAD_FORMAT \
+    "{\n" \
+    "    \"temperature\": %u,\n" \
+    "    \"humidity\": %u,\n" \
+    "    \"light_intensity\": %u\n" \
+    "}"
+
+
+#define TOPIC           "home/sensors"   
+#define TOPIC_SIZE      ((uint16_t)(sizeof(TOPIC) - 1 ))
 
 /**
  * @brief Sends an MQTT PUBLISH to #MQTT_EXAMPLE_TOPIC defined at
@@ -39,7 +48,7 @@
  * @return EXIT_SUCCESS if PUBLISH was successfully sent;
  * EXIT_FAILURE otherwise.
  */
-int publishToTopic( MQTTContext_t * pMqttContext, char *topic, char *payload );
+int publishToTopic( MQTTContext_t * pMqttContext);
 
 void taskPublishAws(void *pvParameters);
 

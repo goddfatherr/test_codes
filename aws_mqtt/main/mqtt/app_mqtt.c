@@ -3,14 +3,28 @@
 #include "mqtt_demo_mutual_auth.h"
 
 
-int publishToTopic( MQTTContext_t * pMqttContext, char *topic, char *payload )
+int publishToTopic( MQTTContext_t * pMqttContext)
 {
     int returnStatus = EXIT_SUCCESS;
     MQTTStatus_t mqttStatus = MQTTSuccess;
     uint8_t publishIndex = MAX_OUTGOING_PUBLISHES;
 
-    uint16_t topicWidth =  ((uint16_t)(sizeof(TEMP_TOPIC) - 1 ));
-    uint16_t payloadWidth =  ((uint16_t)(sizeof(payload) - 1 ));
+    //uint16_t topicWidth =  ((uint16_t)(sizeof(TEMP_TOPIC) - 1 ));
+    //uint16_t payloadWidth =  ((uint16_t)(sizeof(payload) - 1 ));
+
+    // Generate the payload string
+    //char payload[200];  
+    //snprintf(payload, sizeof(payload), PAYLOAD_FORMAT, temperature, humidity, light);
+
+    // Determine the required size for the payload
+    size_t payloadSize = snprintf(NULL, 0, PAYLOAD_FORMAT, temperature, humidity, light) + 1;
+    char* payload = malloc(payloadSize);
+    if (payload == NULL) {
+
+        // Failed to allocate memory, handle error
+        // ...
+    }
+    snprintf(payload, payloadSize, PAYLOAD_FORMAT, temperature, humidity, light);
 
     assert( pMqttContext != NULL );
 
@@ -22,11 +36,11 @@ int publishToTopic( MQTTContext_t * pMqttContext, char *topic, char *payload )
     }
     else
     {
-        outgoingPublishPackets[ publishIndex ].pubInfo.qos = MQTTQoS1;
-        outgoingPublishPackets[ publishIndex ].pubInfo.pTopicName = TEMP_TOPIC;
-        outgoingPublishPackets[ publishIndex ].pubInfo.topicNameLength =  topicWidth;
+        outgoingPublishPackets[ publishIndex ].pubInfo.qos = MQTTQoS0;
+        outgoingPublishPackets[ publishIndex ].pubInfo.pTopicName = TOPIC;
+        outgoingPublishPackets[ publishIndex ].pubInfo.topicNameLength =  TOPIC_SIZE;
         outgoingPublishPackets[ publishIndex ].pubInfo.pPayload = payload;
-        outgoingPublishPackets[ publishIndex ].pubInfo.payloadLength = payloadWidth;
+        outgoingPublishPackets[ publishIndex ].pubInfo.payloadLength = ((uint16_t)(payloadSize ));
 
         outgoingPublishPackets[ publishIndex ].packetId = MQTT_GetPacketId( pMqttContext );
 
@@ -44,12 +58,14 @@ int publishToTopic( MQTTContext_t * pMqttContext, char *topic, char *payload )
         else
         {
             LogInfo( ( "PUBLISH sent for topic %.*s to broker with packet ID %u.\n\n",
-                       topicWidth,
-                       topic,
+                       TOPIC_SIZE,
+                       TOPIC,
                        outgoingPublishPackets[ publishIndex ].packetId ) );
         }
+
     }
 
+    free(payload);
     return returnStatus;
 }
 
@@ -62,21 +78,13 @@ void taskPublishAws(void *pvParameters)
     bool clientSessionPresent = false, brokerSessionPresent = false;
     struct timespec tp;
 
-    char buffer[5]; 
+    //char buffer[5]; 
 
     ( void ) clock_gettime( CLOCK_REALTIME, &tp );
     srand( tp.tv_nsec );
 
     returnStatus = initializeMqtt( &mqttContext, &xNetworkContext );
-
-    if( returnStatus == EXIT_SUCCESS )
-    {
-        while(1)
-        {
-            //Wait for semaphore to be available 
-             xSemaphoreTake(taskSyncSemaphore, portMAX_DELAY);
-
-            returnStatus = connectToServerWithBackoffRetries( &xNetworkContext, &mqttContext, &clientSessionPresent, &brokerSessionPresent );
+    returnStatus = connectToServerWithBackoffRetries( &xNetworkContext, &mqttContext, &clientSessionPresent, &brokerSessionPresent );
 
         if( returnStatus == EXIT_FAILURE )
         {
@@ -99,55 +107,37 @@ void taskPublishAws(void *pvParameters)
                 LogInfo( ( "A clean MQTT connection is established."
                             " Cleaning up all the stored outgoing publishes.\n\n" ) );
                             
-                cleanupOutgoingPublishes();
+                
             }
 
+    if( returnStatus == EXIT_SUCCESS )
+    {
+        while(1)
+        {
+            //Wait for semaphore to be available 
+             xSemaphoreTake(taskSyncSemaphore, portMAX_DELAY);
 
             /* If TLS session is established, execute Publish . */
 
-            /*Log temperature */
-                itoa(temperature, buffer, 10);
-                returnStatus = publishToTopic( &mqttContext, TEMP_TOPIC, buffer);
+                returnStatus = publishToTopic( &mqttContext);
                 if( returnStatus == EXIT_SUCCESS )
             {
-                LogInfo( ( "Temperature Data Logged Successfully.\n" ) );
+                LogInfo( ( "Sensor Data Logged to Cloud Successfully.\n" ) );
             }
                 else
             {
-                LogInfo( ( "Error Logging Temperature Data.\n" ) );
+                LogInfo( ( "Error Logging Data.\n" ) );
             }
 
-            /*Log Humidity */
-                itoa(humidity, buffer, 10);
-                returnStatus = publishToTopic( &mqttContext, HUMD_TOPIC, buffer);
-                if( returnStatus == EXIT_SUCCESS )
-            {
-                LogInfo( ( "Humidity Data Logged Successfully.\n" ) );
-            }
-                else
-            {
-                LogInfo( ( "Error Logging Humidity Data.\n" ) );
-            }
-
-            /*Log Light intensity */
-                itoa(light, buffer, 10);
-                returnStatus = publishToTopic( &mqttContext, LIGHT_TOPIC, buffer);
-                if( returnStatus == EXIT_SUCCESS )
-            {
-                LogInfo( ( "Light Intensity Data Logged Successfully.\n" ) );
-            }
-                else
-            {
-                LogInfo( ( "Error Logging Light Intensity Data.\n" ) );
-            }
-
+                 cleanupOutgoingPublishes();
 
                 /* End TLS session, then close TCP connection. */
-                cleanupESPSecureMgrCerts( &xNetworkContext );
-                ( void ) xTlsDisconnect( &xNetworkContext );
+                //cleanupESPSecureMgrCerts( &xNetworkContext );
+                //( void ) xTlsDisconnect( &xNetworkContext );
+                 vTaskDelay(pdMS_TO_TICKS(1000)); 
             }
 
-            vTaskDelay(pdMS_TO_TICKS(1000)); 
+           
         }
         
     }

@@ -176,7 +176,7 @@ extern const char root_cert_auth_end[]   asm("_binary_root_cert_auth_crt_end");
  *  absence of sending any other Control Packets, the Client MUST send a
  *  PINGREQ Packet.
  */
-#define MQTT_KEEP_ALIVE_INTERVAL_SECONDS    ( 120U )
+#define MQTT_KEEP_ALIVE_INTERVAL_SECONDS    ( 60U )
 
 /**
  * @brief Delay between MQTT publishes in seconds.
@@ -224,7 +224,7 @@ extern const char root_cert_auth_end[]   asm("_binary_root_cert_auth_crt_end");
  * @brief The length of the outgoing publish records array used by the coreMQTT
  * library to track QoS > 0 packet ACKS for outgoing publishes.
  */
-#define OUTGOING_PUBLISH_RECORD_LEN    ( 10U )
+#define OUTGOING_PUBLISH_RECORD_LEN    ( 5U )
 
 /**
  * @brief The length of the incoming publish records array used by the coreMQTT
